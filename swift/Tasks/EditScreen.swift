@@ -111,3 +111,53 @@ struct EditScreen_Previews: PreviewProvider {
         )
     }
 }
+
+
+struct BulkAddScreen: View {
+    @EnvironmentObject var listVM: TasksListScreenViewModel
+    @Environment(\.dismiss) private var dismiss
+    @FocusState var titleHasFocus: Bool
+    @State private var taskNumberText: String = ""
+    @State private var prefix: String = ""
+    
+    var taskNumber: Int {
+        return Int(taskNumberText) ?? 0
+    }
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section {
+                    TextField("Prefix:", text: $prefix)
+                
+                    TextField("Number:", text: $taskNumberText)
+                        .keyboardType(.numberPad)
+                        .focused($titleHasFocus)
+                }
+            }
+            .navigationTitle("Create Tasks")
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    dismiss()
+                },
+                trailing: Button("Create") {
+                    onSubmit()
+                }
+                .disabled(taskNumber <= 0)
+            )
+        }
+        .onAppear {
+            titleHasFocus = true
+        }
+    }
+
+    func onSubmit() {
+        for i in 1...taskNumber {
+            var newTask = TaskModel()
+            newTask.title = "\(prefix)-\(i)"
+            newTask.deleted = false
+            listVM.saveNewTask(newTask)
+        }
+        dismiss()
+    }
+}

@@ -7,6 +7,7 @@ import SwiftUI
 class TasksListScreenViewModel: ObservableObject {
     @Published var tasks = [TaskModel]()
     @Published var isPresentingEditScreen: Bool = false
+    @Published var isPresentingBulkAddScreen: Bool = false
     private(set) var taskToEdit: TaskModel?
 
     private let ditto = DittoManager.shared.ditto
@@ -202,6 +203,10 @@ class TasksListScreenViewModel: ObservableObject {
         taskToEdit = nil
         isPresentingEditScreen = true
     }
+    
+    func onBulkAdd() {
+        isPresentingBulkAddScreen = true
+    }
 }
 
 /// Main view of the app, which displays a list of tasks
@@ -231,20 +236,20 @@ struct TasksListScreen: View {
                     }
                 }
                 .background(getBackgroundColor(for: viewModel.tasks.count))
-                .scrollContentBackground(.hidden) // Hide default list background
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
                 .animation(.default, value: viewModel.tasks)
-                               .navigationTitle("")
-                               .safeAreaInset(edge: .top) {
-                                   HStack {
-                                       Text("\(viewModel.tasks.count)")
-                                           .font(.system(size: 64, weight: .bold))
-                                           .foregroundColor(.primary)
-                                           .padding(.horizontal)
-                                           .padding(.top, 8)
-                                       Spacer()
-                                   }
-                                   
-                               }
+                .navigationTitle("")
+                .safeAreaInset(edge: .top) {
+                    HStack {
+                        Text("\(viewModel.tasks.count)")
+                            .font(.system(size: 64, weight: .bold))
+                            .foregroundColor(.primary)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                        Spacer()
+                    }
+                }
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         HStack {
@@ -260,21 +265,31 @@ struct TasksListScreen: View {
                                 }
                         }
                     }
-                    ToolbarItem(placement: .bottomBar) {
-                        HStack {
-                            Spacer()
-                            Button(action: {
-                                viewModel.onNewTask()
-                            }, label: {
-                                HStack {
-                                    Image(systemName: "plus")
-                                    Text("New Task")
-                                }
-                            })
-                            .buttonStyle(.borderedProminent)
-                            .padding(.bottom)
-                        }
+                }
+                .overlay(alignment: .bottom) {
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            viewModel.onBulkAdd()
+                        }, label: {
+                            HStack {
+                                Image(systemName: "list.bullet.rectangle")
+                                Text("Bulk Add")
+                            }
+                        })
+                        .buttonStyle(.borderedProminent)
+                        
+                        Button(action: {
+                            viewModel.onNewTask()
+                        }, label: {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text("New Task")
+                            }
+                        })
+                        .buttonStyle(.borderedProminent)
                     }
+                    .padding(.horizontal)
+                    .padding(.bottom, 34)
                 }
                 .sheet(
                     isPresented: $viewModel.isPresentingEditScreen,
@@ -282,9 +297,14 @@ struct TasksListScreen: View {
                         EditScreen(task: viewModel.taskToEdit)
                             .environmentObject(viewModel)
                     })
+                .sheet(
+                    isPresented: $viewModel.isPresentingBulkAddScreen,
+                    content: {
+                        BulkAddScreen()
+                            .environmentObject(viewModel)
+                    })
             } else {
                 // Fallback on earlier versions
-            };if #available(iOS 16.0, *) {
                 List {
                     Section(
                         header: VStack {
@@ -309,8 +329,8 @@ struct TasksListScreen: View {
                         .onDelete(perform: deleteTaskItems)
                     }
                 }
-                .background(Color.green) // Added green background to the List
-                .scrollContentBackground(.hidden) // Hide default list background
+                .background(getBackgroundColor(for: viewModel.tasks.count))
+                .listStyle(.plain)
                 .animation(.default, value: viewModel.tasks)
                 .navigationTitle("Tasks: \(viewModel.tasks.count)")
                 .toolbar {
@@ -350,8 +370,6 @@ struct TasksListScreen: View {
                         EditScreen(task: viewModel.taskToEdit)
                             .environmentObject(viewModel)
                     })
-            } else {
-                // Fallback on earlier versions
             }
         }
         .navigationViewStyle(.stack)

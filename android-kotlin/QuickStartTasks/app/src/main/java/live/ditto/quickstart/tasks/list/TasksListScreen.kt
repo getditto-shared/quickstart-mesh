@@ -1,10 +1,14 @@
 package live.ditto.quickstart.tasks.list
 
+import android.graphics.fonts.Font
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,6 +51,8 @@ import live.ditto.quickstart.tasks.BuildConfig
 import live.ditto.quickstart.tasks.R
 import live.ditto.quickstart.tasks.data.Task
 import java.util.UUID
+import androidx.core.graphics.toColorInt
+import org.koin.core.logger.Logger
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,33 +65,37 @@ fun TasksListScreen(navController: NavController) {
     var deleteDialogTaskId by remember { mutableStateOf("") }
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize(),
         topBar = {
             TopAppBar(
+                modifier = Modifier.height(150.dp),
+
                 title = {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp)
+                            .fillMaxHeight()
                     ) {
                         Column {
                             Text(
-                                text = "Ditto Tasks",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = "App ID: ${BuildConfig.DITTO_APP_ID}",
-                                style = TextStyle(fontSize = 10.sp)
-                            )
-                            Text(
-                                text = "Token: ${BuildConfig.DITTO_PLAYGROUND_TOKEN}",
-                                style = TextStyle(fontSize = 10.sp)
+                                text = "${tasks.size}",
+                                style = TextStyle(
+                                    fontSize = 100.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    lineHeight = 100.sp
+                                ),
+                                maxLines = 1, // Ensure single line
+                                overflow = TextOverflow.Visible
+
                             )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorResource(id = R.color.blue_700),
-                    titleContentColor = Color.White
+                    containerColor = Color(getBackgroundColour(tasks.size)),
+                    titleContentColor = Color.Black,
+
                 ),
                 actions = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -118,6 +130,7 @@ fun TasksListScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .background(Color.Transparent)
             ) {
                 TasksList(
                     tasks = tasks,
@@ -180,10 +193,13 @@ fun TasksList(
     onClickEdit: ((taskId: String) -> Unit)? = null,
     onClickDelete: ((taskId: String) -> Unit)? = null,
 ) {
-    LazyColumn {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().background(Color(getBackgroundColour(tasks.size)))
+    ) {
         items(tasks) { task ->
             TaskRow(
                 task = task,
+                backgroundColor = Color(getBackgroundColour(tasks.size)),
                 onToggle = { onToggle?.invoke(it._id) },
                 onClickEdit = { onClickEdit?.invoke(it._id) },
                 onClickDelete = { onClickDelete?.invoke(it._id) }
@@ -193,7 +209,7 @@ fun TasksList(
 }
 
 @Preview(
-    showBackground = true,
+    showBackground = false,
     showSystemUi = true,
     device = Devices.PIXEL_3
 )
@@ -206,4 +222,15 @@ fun TasksListPreview() {
             Task(UUID.randomUUID().toString(), "Get Berries", true, false),
         )
     )
+}
+
+fun getBackgroundColour(taskNumber: Int): Int {
+    val colorsHex = BuildConfig.COLORS_HEX
+    val colorsList = colorsHex.split(",").map { it.trim() }
+
+    val colorIndex = taskNumber % 20
+    val actualIndex = colorIndex % colorsList.size
+    val hexColor = colorsList[actualIndex]
+
+    return hexColor.toColorInt()
 }

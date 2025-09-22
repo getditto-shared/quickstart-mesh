@@ -1,6 +1,7 @@
 package live.ditto.quickstart.tasks.list
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +11,12 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
@@ -30,6 +33,7 @@ import java.util.UUID
 @Composable
 fun TaskRow(
     task: Task,
+    backgroundColor: Color = Color.Transparent,
     onToggle: ((task: Task) -> Unit)? = null,
     onClickEdit: ((task: Task) -> Unit)? = null,
     onClickDelete: ((task: Task) -> Unit)? = null
@@ -37,9 +41,11 @@ fun TaskRow(
 
     val iconId =
         if (task.done) R.drawable.ic_baseline_circle_24 else R.drawable.ic_outline_circle_24
-    val color = if (task.done) R.color.blue_200 else R.color.gray
     val textDecoration = if (task.done) TextDecoration.LineThrough else TextDecoration.None
     ListItem(
+        colors = ListItemDefaults.colors(
+            containerColor = backgroundColor
+        ),
         headlineContent = {
             Text(
                 text = task.title,
@@ -52,7 +58,6 @@ fun TaskRow(
                     id = iconId
                 ),
                 "Toggle",
-                colorFilter = ColorFilter.tint(colorResource(id = color)),
                 modifier = Modifier
                     .clickable { onToggle?.invoke(task) },
                 alignment = Alignment.CenterEnd

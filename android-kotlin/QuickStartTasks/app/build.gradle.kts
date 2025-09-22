@@ -11,19 +11,20 @@ plugins {
 fun loadEnvProperties(): Properties {
     val properties = Properties()
     val envFile = rootProject.file("../../.env")
-    
+
     if (envFile.exists()) {
         FileInputStream(envFile).use { properties.load(it) }
     } else {
         val requiredEnvVars = listOf(
-            "DITTO_APP_ID", 
-            "DITTO_PLAYGROUND_TOKEN", 
-            "DITTO_AUTH_URL", 
-            "DITTO_WEBSOCKET_URL"
+            "DITTO_APP_ID",
+            "DITTO_PLAYGROUND_TOKEN",
+            "DITTO_AUTH_URL",
+            "DITTO_WEBSOCKET_URL",
+            "COLORS_HEX",
         )
-        
+
         for (envVar in requiredEnvVars) {
-            val value = System.getenv(envVar) 
+            val value = System.getenv(envVar)
                 ?: throw RuntimeException("Required environment variable $envVar not found")
             properties[envVar] = value
         }
@@ -39,14 +40,23 @@ androidComponents {
             "DITTO_PLAYGROUND_TOKEN" to "Ditto playground token",
             "DITTO_AUTH_URL" to "Ditto authentication URL",
             "DITTO_WEBSOCKET_URL" to "Ditto websocket URL",
-            "TEST_DOCUMENT_TITLE" to "Test document title for BrowserStack verification"
+            "COLORS_HEX" to "List of colours to use for mesh testing"
         )
-        
+
         buildConfigFields.forEach { (key, description) ->
-            it.buildConfigFields.put(
-                key,
-                BuildConfigField("String", "\"${prop[key]}\"", description)
-            )
+            val value = prop[key]?.toString() ?: ""
+
+            if (key == "COLORS_HEX") {
+                it.buildConfigFields.put(
+                    key,
+                    BuildConfigField("String", "\"${value}\"", description)
+                )
+            } else {
+                it.buildConfigFields.put(
+                    key,
+                    BuildConfigField("String", "${value}", description)
+                )
+            }
         }
     }
 }
@@ -133,6 +143,7 @@ dependencies {
 
     // Ditto SDK
     implementation(libs.live.ditto)
+    implementation("live.ditto:ditto:4.12.1")
 
     // Testing
     testImplementation(libs.junit)

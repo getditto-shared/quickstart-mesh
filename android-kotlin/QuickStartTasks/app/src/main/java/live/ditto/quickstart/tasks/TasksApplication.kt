@@ -39,12 +39,10 @@ class TasksApplication : Application() {
     
     override fun onCreate() {
         super.onCreate()
-        ioScope.launch {
-            setupDitto()
-        }
+        setupDitto()
     }
 
-    private suspend fun setupDitto() {
+    private fun setupDitto() {
         val androidDependencies = DefaultAndroidDittoDependencies(applicationContext)
 
         //read values from build.gradle.kts (Module:app) which reads from environment file
@@ -73,9 +71,9 @@ class TasksApplication : Application() {
             config.connect.websocketUrls.add(webSocketURL)
         }
 
-        ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false")
-
         // disable sync with v3 peers, required for DQL
         ditto.disableSyncWithV3()
+
+        ditto.startSync()
     }
 }

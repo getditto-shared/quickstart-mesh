@@ -26,6 +26,7 @@ struct TaskRow: View {
         .onTapGesture {
             onClickEdit?(task)
         }
+        .listRowBackground(Color.clear)
     }
 }
 

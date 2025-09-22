@@ -209,76 +209,153 @@ struct TasksListScreen: View {
     private static let isSyncEnabledKey = "syncEnabled"
 
     @StateObject var viewModel = TasksListScreenViewModel()
-
     @State private var syncEnabled: Bool = Self.loadSyncEnabledState()
 
     var body: some View {
         NavigationView {
-            List {
-                Section(
-                    header: VStack {
-                        Text("App ID: \(Env.DITTO_APP_ID)")
-                        Text("Token: \(Env.DITTO_PLAYGROUND_TOKEN)")
-                    }
-                    .font(.caption)
-                    .textCase(nil)
-                    .padding(.bottom)
-                ) {
-                    ForEach(viewModel.tasks) { task in
-                        TaskRow(
-                            task: task,
-                            onToggle: { task in
-                                viewModel.toggleComplete(task: task)
-                            },
-                            onClickEdit: { task in
-                                viewModel.onEdit(task: task)
-                            }
-                        )
-                    }
-                    .onDelete(perform: deleteTaskItems)
-                }
-            }
-            .animation(.default, value: viewModel.tasks)
-            .navigationTitle("Ditto Tasks")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
-                        Toggle("Sync", isOn: $syncEnabled)
-                            .toggleStyle(SwitchToggleStyle())
-                            .onChange(of: syncEnabled) { newSyncEnabled in
-                                Self.saveSyncEnabledState(newSyncEnabled)
-                                do {
-                                    try viewModel.setSyncEnabled(newSyncEnabled)
-                                } catch {
-                                    syncEnabled = false
+            if #available(iOS 16.0, *) {
+                List {
+                    Section() {
+                        ForEach(viewModel.tasks) { task in
+                            TaskRow(
+                                task: task,
+                                onToggle: { task in
+                                    viewModel.toggleComplete(task: task)
+                                },
+                                onClickEdit: { task in
+                                    viewModel.onEdit(task: task)
                                 }
-                            }
+                            )
+                        }
+                        .onDelete(perform: deleteTaskItems)
                     }
                 }
-                ToolbarItem(placement: .bottomBar) {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            viewModel.onNewTask()
-                        }, label: {
-                            HStack {
-                                Image(systemName: "plus")
-                                Text("New Task")
-                            }
-                        })
-                        .buttonStyle(.borderedProminent)
-                        .padding(.bottom)
+                .background(getBackgroundColor(for: viewModel.tasks.count))
+                .scrollContentBackground(.hidden) // Hide default list background
+                .animation(.default, value: viewModel.tasks)
+                               .navigationTitle("")
+                               .safeAreaInset(edge: .top) {
+                                   HStack {
+                                       Text("\(viewModel.tasks.count)")
+                                           .font(.system(size: 64, weight: .bold))
+                                           .foregroundColor(.primary)
+                                           .padding(.horizontal)
+                                           .padding(.top, 8)
+                                       Spacer()
+                                   }
+                                   
+                               }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HStack {
+                            Toggle("Sync", isOn: $syncEnabled)
+                                .toggleStyle(SwitchToggleStyle())
+                                .onChange(of: syncEnabled) { newSyncEnabled in
+                                    Self.saveSyncEnabledState(newSyncEnabled)
+                                    do {
+                                        try viewModel.setSyncEnabled(newSyncEnabled)
+                                    } catch {
+                                        syncEnabled = false
+                                    }
+                                }
+                        }
+                    }
+                    ToolbarItem(placement: .bottomBar) {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                viewModel.onNewTask()
+                            }, label: {
+                                HStack {
+                                    Image(systemName: "plus")
+                                    Text("New Task")
+                                }
+                            })
+                            .buttonStyle(.borderedProminent)
+                            .padding(.bottom)
+                        }
                     }
                 }
+                .sheet(
+                    isPresented: $viewModel.isPresentingEditScreen,
+                    content: {
+                        EditScreen(task: viewModel.taskToEdit)
+                            .environmentObject(viewModel)
+                    })
+            } else {
+                // Fallback on earlier versions
+            };if #available(iOS 16.0, *) {
+                List {
+                    Section(
+                        header: VStack {
+                            Text("App ID: \(Env.DITTO_APP_ID)")
+                            Text("Token: \(Env.DITTO_PLAYGROUND_TOKEN)")
+                        }
+                            .font(.caption)
+                            .textCase(nil)
+                            .padding(.bottom)
+                    ) {
+                        ForEach(viewModel.tasks) { task in
+                            TaskRow(
+                                task: task,
+                                onToggle: { task in
+                                    viewModel.toggleComplete(task: task)
+                                },
+                                onClickEdit: { task in
+                                    viewModel.onEdit(task: task)
+                                }
+                            )
+                        }
+                        .onDelete(perform: deleteTaskItems)
+                    }
+                }
+                .background(Color.green) // Added green background to the List
+                .scrollContentBackground(.hidden) // Hide default list background
+                .animation(.default, value: viewModel.tasks)
+                .navigationTitle("Tasks: \(viewModel.tasks.count)")
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HStack {
+                            Toggle("Sync", isOn: $syncEnabled)
+                                .toggleStyle(SwitchToggleStyle())
+                                .onChange(of: syncEnabled) { newSyncEnabled in
+                                    Self.saveSyncEnabledState(newSyncEnabled)
+                                    do {
+                                        try viewModel.setSyncEnabled(newSyncEnabled)
+                                    } catch {
+                                        syncEnabled = false
+                                    }
+                                }
+                        }
+                    }
+                    ToolbarItem(placement: .bottomBar) {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                viewModel.onNewTask()
+                            }, label: {
+                                HStack {
+                                    Image(systemName: "plus")
+                                    Text("New Task")
+                                }
+                            })
+                            .buttonStyle(.borderedProminent)
+                            .padding(.bottom)
+                        }
+                    }
+                }
+                .sheet(
+                    isPresented: $viewModel.isPresentingEditScreen,
+                    content: {
+                        EditScreen(task: viewModel.taskToEdit)
+                            .environmentObject(viewModel)
+                    })
+            } else {
+                // Fallback on earlier versions
             }
-            .sheet(
-                isPresented: $viewModel.isPresentingEditScreen,
-                content: {
-                    EditScreen(task: viewModel.taskToEdit)
-                        .environmentObject(viewModel)
-                })
         }
         .navigationViewStyle(.stack)
+        .background(getBackgroundColor(for: viewModel.tasks.count))
         .onAppear {
             // Prevent Xcode previews from syncing: non-preview simulators and real devices can sync
             let isPreview: Bool =
@@ -314,6 +391,18 @@ struct TasksListScreen: View {
         UserDefaults.standard.set(state, forKey: isSyncEnabledKey)
         UserDefaults.standard.synchronize()
     }
+    
+
+    func getBackgroundColor(for taskCount: Int) -> Color {
+        let colorIndex = taskCount % 20
+        
+        let hexColors = Env.COLORS_HEX.components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        
+        let safeIndex = colorIndex % hexColors.count
+        
+        return Color(hex: hexColors[safeIndex])
+    }
 }
 
 struct TasksListScreen_Previews: PreviewProvider {
@@ -321,3 +410,32 @@ struct TasksListScreen_Previews: PreviewProvider {
         TasksListScreen()
     }
 }
+
+// Extension to create Color from hex codes
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+

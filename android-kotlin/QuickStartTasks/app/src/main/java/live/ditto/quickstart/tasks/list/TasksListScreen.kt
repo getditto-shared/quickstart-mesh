@@ -76,20 +76,21 @@ fun TasksListScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
+                            .padding(end = 80.dp) // Leave space for sync switch
                     ) {
-                        Column {
-                            Text(
-                                text = "${tasks.size}",
-                                style = TextStyle(
-                                    fontSize = 100.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    lineHeight = 100.sp
-                                ),
-                                maxLines = 1, // Ensure single line
-                                overflow = TextOverflow.Visible
-
-                            )
-                        }
+                        Text(
+                            text = "${tasks.size}",
+                            style = TextStyle(
+                                fontSize = 80.sp, // Reduced from 100.sp
+                                fontWeight = FontWeight.Bold,
+                                lineHeight = 80.sp
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis, // Shows "..." if still too long
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.CenterStart)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

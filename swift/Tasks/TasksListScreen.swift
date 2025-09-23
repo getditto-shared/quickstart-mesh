@@ -412,14 +412,12 @@ struct TasksListScreen: View {
     
 
     func getBackgroundColor(for taskCount: Int) -> Color {
-        let colorIndex = taskCount % 20
-        
         let hexColors = Env.COLORS_HEX.components(separatedBy: ",")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        
-        let safeIndex = colorIndex % hexColors.count
-        
-        return Color(hex: hexColors[safeIndex])
+
+        let colorIndex = taskCount % hexColors.count
+
+        return Color(hex: hexColors[colorIndex])
     }
 }
 

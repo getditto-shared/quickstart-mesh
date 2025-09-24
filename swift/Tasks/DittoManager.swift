@@ -6,6 +6,10 @@ class DittoManager: ObservableObject {
     let ditto: Ditto
     static let shared = DittoManager()
 
+    func getDeviceName() -> String {
+        return CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "Unset"
+    }
+
     private init() {
         // https://docs.ditto.live/sdk/latest/install-guides/swift#integrating-and-initializing-sync
         ditto = Ditto(
@@ -18,7 +22,7 @@ class DittoManager: ObservableObject {
                 customAuthURL: URL(string: Env.DITTO_AUTH_URL)
             )
         )
-
+        ditto.deviceName = getDeviceName()
         // Set the Ditto Websocket URL
         ditto.updateTransportConfig { transportConfig in
             transportConfig.connect.webSocketURLs.insert(Env.DITTO_WEBSOCKET_URL)

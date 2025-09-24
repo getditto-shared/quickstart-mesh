@@ -40,13 +40,14 @@ androidComponents {
             "DITTO_PLAYGROUND_TOKEN" to "Ditto playground token",
             "DITTO_AUTH_URL" to "Ditto authentication URL",
             "DITTO_WEBSOCKET_URL" to "Ditto websocket URL",
-            "COLORS_HEX" to "List of colours to use for mesh testing"
+            "COLORS_HEX" to "List of colours to use for mesh testing",
+            "DITTO_LOG_SIZE" to "Log file max size in MB"
         )
 
         buildConfigFields.forEach { (key, description) ->
-            val value = prop[key]?.toString() ?: ""
+            val value = prop[key]?.toString() ?: if (key == "DITTO_LOG_SIZE") "50" else ""
 
-            if (key == "COLORS_HEX") {
+            if (key == "COLORS_HEX" || key == "DITTO_LOG_SIZE") {
                 it.buildConfigFields.put(
                     key,
                     BuildConfigField("String", "\"${value}\"", description)

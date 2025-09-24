@@ -52,6 +52,7 @@ class TasksApplication : Application() {
         val token = BuildConfig.DITTO_PLAYGROUND_TOKEN
         val authUrl = BuildConfig.DITTO_AUTH_URL
         val webSocketURL = BuildConfig.DITTO_WEBSOCKET_URL
+        val logSize = BuildConfig.DITTO_LOG_SIZE
 
         val enableDittoCloudSync = false
 
@@ -78,6 +79,9 @@ class TasksApplication : Application() {
         }
 
         // disable sync with v3 peers, required for DQL
+        ioScope.launch {
+            ditto.store.execute("ALTER SYSTEM SET rotating_log_file_max_size_mb = ${logSize}")
+        }
         ditto.disableSyncWithV3()
 
         ditto.startSync()

@@ -2,6 +2,7 @@ package live.ditto.quickstart.tasks
 
 import android.app.Application
 import android.content.Context
+import android.provider.Settings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -13,6 +14,7 @@ import live.ditto.DittoLogger
 import live.ditto.android.DefaultAndroidDittoDependencies
 import live.ditto.quickstart.tasks.DittoHandler.Companion.ditto
 import live.ditto.transports.DittoTransportConfig
+import android.content.ContentResolver
 
 class TasksApplication : Application() {
 
@@ -66,6 +68,10 @@ class TasksApplication : Application() {
         )
 
         ditto = Ditto(androidDependencies, identity)
+        ditto.deviceName = Settings.Global.getString(
+            contentResolver,
+            Settings.Global.DEVICE_NAME
+        )
         ditto.updateTransportConfig { config ->
             // Set the Ditto Websocket URL
             config.connect.websocketUrls.add(webSocketURL)

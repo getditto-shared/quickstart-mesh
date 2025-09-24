@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		046D11032E84627C0018E1C1 /* DittoAllToolsMenu in Frameworks */ = {isa = PBXBuildFile; productRef = 046D11022E84627C0018E1C1 /* DittoAllToolsMenu */; };
 		4170A8552CED346F00043F5A /* DittoObjC in Frameworks */ = {isa = PBXBuildFile; productRef = 4170A8542CED346F00043F5A /* DittoObjC */; };
 		4170A8572CED346F00043F5A /* DittoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 4170A8562CED346F00043F5A /* DittoSwift */; };
 		ABCDEF012345678900000001 /* TasksUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCDEF012345678900000002 /* TasksUITests.swift */; };
@@ -57,6 +58,7 @@
 			files = (
 				4170A8552CED346F00043F5A /* DittoObjC in Frameworks */,
 				4170A8572CED346F00043F5A /* DittoSwift in Frameworks */,
+				046D11032E84627C0018E1C1 /* DittoAllToolsMenu in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,6 +122,7 @@
 			packageProductDependencies = (
 				4170A8542CED346F00043F5A /* DittoObjC */,
 				4170A8562CED346F00043F5A /* DittoSwift */,
+				046D11022E84627C0018E1C1 /* DittoAllToolsMenu */,
 			);
 			productName = Tasks;
 			productReference = 41F8698A2CECF42500DC7268 /* Tasks.app */;
@@ -169,6 +172,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				4170A8532CED346F00043F5A /* XCRemoteSwiftPackageReference "DittoSwiftPackage" */,
+				046D11012E845FA60018E1C1 /* XCRemoteSwiftPackageReference "DittoSwiftTools" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 41F8698B2CECF42500DC7268 /* Products */;
@@ -526,6 +530,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		046D11012E845FA60018E1C1 /* XCRemoteSwiftPackageReference "DittoSwiftTools" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getditto/DittoSwiftTools";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.1.1;
+			};
+		};
 		4170A8532CED346F00043F5A /* XCRemoteSwiftPackageReference "DittoSwiftPackage" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/getditto/DittoSwiftPackage";
@@ -537,6 +549,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		046D11022E84627C0018E1C1 /* DittoAllToolsMenu */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 046D11012E845FA60018E1C1 /* XCRemoteSwiftPackageReference "DittoSwiftTools" */;
+			productName = DittoAllToolsMenu;
+		};
 		4170A8542CED346F00043F5A /* DittoObjC */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4170A8532CED346F00043F5A /* XCRemoteSwiftPackageReference "DittoSwiftPackage" */;

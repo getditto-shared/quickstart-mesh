@@ -1,6 +1,7 @@
 import Combine
 import DittoSwift
 import SwiftUI
+import DittoAllToolsMenu
 
 /// View model for TasksListScreen
 @MainActor
@@ -249,8 +250,14 @@ struct TasksListScreen: View {
             .animation(.default, value: viewModel.tasks)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            /*
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        DittoToolsScreen()
+                    } label: {
+                        Label("Tools", systemImage: "wrench.and.screwdriver")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     VStack {
                         Text("Sync")
@@ -270,7 +277,6 @@ struct TasksListScreen: View {
                     }
                 }
             }
-             */
             .safeAreaInset(edge: .top) {
                 VStack(alignment: .leading, spacing: 8) {
                     Picker("Sync Scope", selection: $syncScope) {
@@ -394,6 +400,14 @@ struct TasksListScreen: View {
 
         let colorIndex = taskCount % max(hexColors.count, 1)
         return Color(hex: hexColors[colorIndex])
+    }
+}
+
+struct DittoToolsScreen: View {
+    private let ditto = DittoManager.shared.ditto
+    var body: some View {
+        // Replace with the actual view name from the module:
+        AllToolsMenu(ditto: ditto)
     }
 }
 

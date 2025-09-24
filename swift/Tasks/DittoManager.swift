@@ -22,6 +22,17 @@ class DittoManager: ObservableObject {
                 customAuthURL: URL(string: Env.DITTO_AUTH_URL)
             )
         )
+
+        Task {
+            do {
+                try await ditto.store.execute(query: "ALTER SYSTEM SET rotating_log_file_max_size_mb  =\(Env.DITTO_LOG_SIZE)")
+            } catch let error {
+                print(
+                    "DittoManger - ERROR: setting Log file size failed with error \"\(error)\""
+                )
+            }
+        }
+
         ditto.deviceName = getDeviceName()
         // Set the Ditto Websocket URL
         ditto.updateTransportConfig { transportConfig in

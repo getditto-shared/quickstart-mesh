@@ -208,13 +208,6 @@ class TasksListScreenViewModel: ObservableObject {
     func onBulkAdd() {
         isPresentingBulkAddScreen = true
     }
-    
-    @MainActor
-    func updateSyncScopeForAll(_ scope: SyncScope) async throws {
-        let q = "ALTER SYSTEM SET USER_COLLECTION_SYNC_SCOPES = :scopes"
-        let scopes: [String: String] = ["tasks": scope.rawValue]
-        try await ditto.store.execute(query: q, arguments: ["scopes": scopes])
-    }
 }
 
 /// Main view of the app, which displays a list of tasks
@@ -224,7 +217,6 @@ struct TasksListScreen: View {
     @StateObject private var viewModel = TasksListScreenViewModel()
     
     @State private var syncEnabled: Bool = Self.loadSyncEnabledState()
-    @State private var syncScope: SyncScope = .allPeers
     
     var body: some View {
         NavigationStack {
@@ -260,10 +252,8 @@ struct TasksListScreen: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     VStack {
-                        Text("Sync")
-                            .font(.caption)
                         Toggle("Sync", isOn: $syncEnabled)
-                            .labelsHidden()
+                            .font(.caption)
                             .toggleStyle(.switch)
                             .onChange(of: syncEnabled) { newSyncEnabled in
                                 Self.saveSyncEnabledState(newSyncEnabled)
@@ -279,22 +269,6 @@ struct TasksListScreen: View {
             }
             .safeAreaInset(edge: .top) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Picker("Sync Scope", selection: $syncScope) {
-                        ForEach(SyncScope.allCases) { scope in
-                            Text(scope.title).tag(scope)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .onChange(of: syncScope) { scope in
-                        Task {
-                            do {
-                                try await viewModel.updateSyncScopeForAll(scope)
-                            } catch {
-                                print("Failed to update sync scope: \(error)")
-                            }
-                        }
-                    }
                     HStack {
                         Text("\(viewModel.tasks.count)")
                             .font(.system(size: 64, weight: .bold))

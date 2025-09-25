@@ -23,16 +23,6 @@ class DittoManager: ObservableObject {
             )
         )
 
-        Task {
-            do {
-                try await ditto.store.execute(query: "ALTER SYSTEM SET rotating_log_file_max_size_mb  =\(Env.DITTO_LOG_SIZE)")
-            } catch let error {
-                print(
-                    "DittoManger - ERROR: setting Log file size failed with error \"\(error)\""
-                )
-            }
-        }
-
         ditto.deviceName = getDeviceName()
         // Set the Ditto Websocket URL
         ditto.updateTransportConfig { transportConfig in
@@ -42,6 +32,16 @@ class DittoManager: ObservableObject {
         // disable sync with v3 peers, required for DQL
         do {
             try ditto.disableSyncWithV3()
+            Task {
+                try await ditto.store.execute(query: "ALTER SYSTEM SET DQL_STRICT_MODE = false")
+                do {
+                    try await ditto.store.execute(query: "ALTER SYSTEM SET rotating_log_file_max_size_mb  =\(Env.DITTO_LOG_SIZE)")
+                } catch let error {
+                    print(
+                        "DittoManger - ERROR: setting Log file size failed with error \"\(error)\""
+                    )
+                }
+            }
         } catch let error {
             print(
                 "DittoManger - ERROR: disableSyncWithV3() failed with error \"\(error)\""

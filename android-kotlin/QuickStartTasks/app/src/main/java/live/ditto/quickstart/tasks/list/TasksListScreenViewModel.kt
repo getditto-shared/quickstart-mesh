@@ -26,8 +26,8 @@ class TasksListScreenViewModel : ViewModel() {
 
     companion object {
         private const val TAG = "TasksListScreenViewModel"
-
-        private const val QUERY = "SELECT * FROM tasks WHERE NOT deleted ORDER BY title ASC"
+        private const val QUERY = "SELECT * FROM tasks WHERE NOT deleted ORDER BY title ASC LIMIT 50"
+        private const val countQUERY = "SELECT COUNT(*) as result FROM tasks WHERE NOT deleted"
     }
 
     private val preferencesDataStore = TasksApplication.applicationContext().preferencesDataStore
@@ -36,6 +36,8 @@ class TasksListScreenViewModel : ViewModel() {
 
     private val _syncEnabled = MutableLiveData(true)
     val syncEnabled: LiveData<Boolean> = _syncEnabled
+
+    val count: MutableLiveData<Int> = MutableLiveData(0)
 
     private var syncSubscription: DittoSyncSubscription? = null
 
@@ -79,6 +81,12 @@ class TasksListScreenViewModel : ViewModel() {
             ditto.store.registerObserver(QUERY) { result ->
                 val list = result.items.map { item -> Task.fromJson(item.jsonString()) }
                 tasks.postValue(list)
+            }
+
+            ditto.store.registerObserver(countQUERY) { result ->
+                result.items.forEach {
+                    count.postValue(it.value["result"] as Int)
+                }
             }
 
             setSyncEnabled(

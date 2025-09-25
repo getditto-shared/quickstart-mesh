@@ -66,6 +66,7 @@ fun TasksListScreen(navController: NavController) {
     val tasksListViewModel: TasksListScreenViewModel = viewModel()
     val tasks: List<Task> by tasksListViewModel.tasks.observeAsState(emptyList())
     val syncEnabled: Boolean by tasksListViewModel.syncEnabled.observeAsState(true)
+    val count: Int by tasksListViewModel.count.observeAsState(0)
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteDialogTaskId by remember { mutableStateOf("") }
@@ -85,14 +86,14 @@ fun TasksListScreen(navController: NavController) {
                             .padding(end = 80.dp) // Leave space for sync switch
                     ) {
                         Text(
-                            text = "${tasks.size}",
+                            text = "$count",
                             style = TextStyle(
                                 fontSize = 80.sp, // Reduced from 100.sp
                                 fontWeight = FontWeight.Bold,
                                 lineHeight = 80.sp
                             ),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis, // Shows "..." if still too long
+                            overflow = TextOverflow.Visible, // Shows "..." if still too long
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.CenterStart)
@@ -100,7 +101,7 @@ fun TasksListScreen(navController: NavController) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(getBackgroundColour(tasks.size)),
+                    containerColor = Color(getBackgroundColour(count)),
                     titleContentColor = Color.Black,
 
                 ),

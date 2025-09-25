@@ -7,6 +7,7 @@ import DittoAllToolsMenu
 @MainActor
 class TasksListScreenViewModel: ObservableObject {
     @Published var tasks = [TaskModel]()
+    @Published var count: Int = 0
     @Published var isPresentingEditScreen: Bool = false
     @Published var isPresentingBulkAddScreen: Bool = false
     private(set) var taskToEdit: TaskModel?
@@ -14,10 +15,12 @@ class TasksListScreenViewModel: ObservableObject {
     private let ditto = DittoManager.shared.ditto
     private var subscription: DittoSyncSubscription?
     private var storeObserver: DittoStoreObserver?
+    private var countObserver: DittoStoreObserver?
 
     private let subscriptionQuery = "SELECT * from tasks"
 
-    private let observerQuery = "SELECT * FROM tasks WHERE NOT deleted ORDER BY title ASC"
+    private let countQuery = "SELECT COUNT(*) as result FROM tasks where NOT deleted"
+    private let observerQuery = "SELECT * FROM tasks WHERE NOT deleted ORDER BY title ASC LIMIT 50"
 
     init() {
         populateTasksCollection()
@@ -31,6 +34,31 @@ class TasksListScreenViewModel: ObservableObject {
                 TaskModel($0.jsonData())
             }
         }
+        
+        // Register count observer
+        countObserver = try? ditto.store.registerObserver(query: countQuery) {
+            [weak self] result in
+            guard let self = self else { return }
+            
+            if result.items.isEmpty {
+                self.count = 0
+            } else if let item = result.items.first,
+                      let resultDict = item.value as? [String: Any],
+                      let countValue = resultDict["result"] {
+                
+                if let intValue = countValue as? Int {
+                    self.count = intValue
+                } else if let optionalInt = countValue as? Int? {
+                    self.count = optionalInt ?? 0
+                } else if let doubleValue = countValue as? Double {
+                    self.count = Int(doubleValue)
+                } else {
+                    self.count = 0
+                }
+            } else {
+                self.count = 0
+            }
+        }
     }
 
     deinit {
@@ -39,23 +67,26 @@ class TasksListScreenViewModel: ObservableObject {
 
         storeObserver?.cancel()
         storeObserver = nil
+        
+        countObserver?.cancel()
+        countObserver = nil
 
-        if ditto.isSyncActive {
-            DittoManager.shared.ditto.stopSync()
+        if ditto.sync.isActive {
+            ditto.sync.stop()
         }
     }
 
     func setSyncEnabled(_ newValue: Bool) throws {
-        if !ditto.isSyncActive && newValue {
+        if !ditto.sync.isActive && newValue {
             try startSync()
-        } else if ditto.isSyncActive && !newValue {
+        } else if ditto.sync.isActive && !newValue {
             stopSync()
         }
     }
 
     private func startSync() throws {
         do {
-            try ditto.startSync()
+            try ditto.sync.start()
 
             // Register a subscription, which determines what data syncs to this peer
             // https://docs.ditto.live/sdk/latest/sync/syncing-data#creating-subscriptions
@@ -72,7 +103,7 @@ class TasksListScreenViewModel: ObservableObject {
         subscription?.cancel()
         subscription = nil
 
-        ditto.stopSync()
+        ditto.sync.stop()
     }
 
     func toggleComplete(task: TaskModel) {
@@ -236,7 +267,7 @@ struct TasksListScreen: View {
                     .onDelete(perform: deleteTaskItems)
                 }
             }
-            .background(getBackgroundColor(for: viewModel.tasks.count))
+            .background(getBackgroundColor(for: viewModel.count))
             .scrollContentBackground(.hidden)
             .listStyle(.plain)
             .animation(.default, value: viewModel.tasks)
@@ -270,7 +301,7 @@ struct TasksListScreen: View {
             .safeAreaInset(edge: .top) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("\(viewModel.tasks.count)")
+                        Text("\(viewModel.count)")
                             .font(.system(size: 64, weight: .bold))
                             .foregroundStyle(.primary)
                             .padding(.horizontal)
@@ -308,7 +339,7 @@ struct TasksListScreen: View {
                 .padding(.bottom, 24)  // moves the bar up visually and gives touch target
                 .background(
                     // match your dynamic background color
-                    getBackgroundColor(for: viewModel.tasks.count)
+                    getBackgroundColor(for: viewModel.count)
                         .ignoresSafeArea(edges: .bottom)
                 )
                 .overlay(
@@ -326,7 +357,7 @@ struct TasksListScreen: View {
                     .environmentObject(viewModel)
             }
         }
-        .background(getBackgroundColor(for: viewModel.tasks.count))
+        .background(getBackgroundColor(for: viewModel.count))
         // Prefer `.task` for startup work; keeps side effects out of the body
         .task {
             // Prevent Xcode previews from syncing

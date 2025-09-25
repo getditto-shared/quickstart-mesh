@@ -27,6 +27,8 @@ class DittoManager: ObservableObject {
         // Set the Ditto Websocket URL
         ditto.updateTransportConfig { transportConfig in
             transportConfig.connect.webSocketURLs.insert(Env.DITTO_WEBSOCKET_URL)
+            transportConfig.peerToPeer.bluetoothLE.isEnabled = false
+            transportConfig.peerToPeer.awdl.isEnabled = false
         }
 
         // disable sync with v3 peers, required for DQL

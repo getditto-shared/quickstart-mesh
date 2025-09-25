@@ -119,7 +119,7 @@ struct BulkAddScreen: View {
     @FocusState var titleHasFocus: Bool
     @State private var taskNumberText: String = ""
     @State private var prefix: String = ""
-    @State private var delay: String = ""
+    @State private var delay: String = "1000"
     
     var taskNumber: Int {
         return Int(taskNumberText) ?? 0

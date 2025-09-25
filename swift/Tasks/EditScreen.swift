@@ -138,6 +138,7 @@ struct BulkAddScreen: View {
                     TextField("Prefix:", text: $prefix)
                     
                     TextField("Delay (ms):", text: $delay)
+                        .keyboardType(.numberPad)
                 
                     TextField("Number:", text: $taskNumberText)
                         .keyboardType(.numberPad)

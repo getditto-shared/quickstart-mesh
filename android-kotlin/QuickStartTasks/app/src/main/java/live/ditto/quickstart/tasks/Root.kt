@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import live.ditto.quickstart.tasks.bulkadd.BulkAddScreen
 import live.ditto.quickstart.tasks.edit.EditScreen
 import live.ditto.quickstart.tasks.list.TasksListScreen
 import live.ditto.quickstart.tasks.tools.DittoToolsScreen
@@ -29,6 +30,9 @@ fun Root() {
                 }
                 composable("tools") {
                     DittoToolsScreen(navController = navController)
+                }
+                composable("tasks/bulkadd") {
+                    BulkAddScreen(navController = navController)
                 }
             }
         }

@@ -144,8 +144,7 @@ dependencies {
 
     // Ditto SDK
     implementation(libs.live.ditto)
-    implementation("live.ditto:ditto:4.12.1")
-    implementation("live.ditto:ditto-tools-android:4.0.2")
+    implementation(libs.ditto.tools)
 
     // Testing
     testImplementation(libs.junit)

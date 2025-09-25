@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import live.ditto.quickstart.tasks.edit.EditScreen
 import live.ditto.quickstart.tasks.list.TasksListScreen
+import live.ditto.quickstart.tasks.tools.DittoToolsScreen
 import live.ditto.quickstart.tasks.ui.theme.QuickStartTasksTheme
 
 @Composable
@@ -25,6 +26,9 @@ fun Root() {
                 composable("tasks/edit/{taskId}") { backStackEntry ->
                     val taskId: String? = backStackEntry.arguments?.getString("taskId")
                     EditScreen(navController = navController, taskId = taskId)
+                }
+                composable("tools") {
+                    DittoToolsScreen(navController = navController)
                 }
             }
         }

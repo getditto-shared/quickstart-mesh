@@ -119,7 +119,7 @@ struct BulkAddScreen: View {
     @FocusState var titleHasFocus: Bool
     @State private var taskNumberText: String = ""
     @State private var prefix: String = ""
-    @State private var delay: String = ""
+    @State private var delay: String = "1000"
     
     var taskNumber: Int {
         return Int(taskNumberText) ?? 0
@@ -138,6 +138,7 @@ struct BulkAddScreen: View {
                     TextField("Prefix:", text: $prefix)
                     
                     TextField("Delay (ms):", text: $delay)
+                        .keyboardType(.numberPad)
                 
                     TextField("Number:", text: $taskNumberText)
                         .keyboardType(.numberPad)

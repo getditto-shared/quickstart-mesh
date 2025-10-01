@@ -175,6 +175,7 @@ fun TasksListScreen(navController: NavController, isDittoInitialized: Boolean = 
             ) {
                 TasksList(
                     tasks = tasks,
+                    count = count,
                     onToggle = { tasksListViewModel.toggle(it) },
                     onClickEdit = {
                         navController.navigate("tasks/edit/${it}")
@@ -268,17 +269,18 @@ fun TasksListScreen(navController: NavController, isDittoInitialized: Boolean = 
 @Composable
 fun TasksList(
     tasks: List<Task>,
+    count: Int,
     onToggle: ((taskId: String) -> Unit)? = null,
     onClickEdit: ((taskId: String) -> Unit)? = null,
     onClickDelete: ((taskId: String) -> Unit)? = null,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color(getBackgroundColour(tasks.size)))
+        modifier = Modifier.fillMaxSize().background(Color(getBackgroundColour(count)))
     ) {
         items(tasks) { task ->
             TaskRow(
                 task = task,
-                backgroundColor = Color(getBackgroundColour(tasks.size)),
+                backgroundColor = Color(getBackgroundColour(count)),
                 onToggle = { onToggle?.invoke(it._id) },
                 onClickEdit = { onClickEdit?.invoke(it._id) },
                 onClickDelete = { onClickDelete?.invoke(it._id) }
@@ -299,7 +301,8 @@ fun TasksListPreview() {
             Task(UUID.randomUUID().toString(), "Get Milk", true, false),
             Task(UUID.randomUUID().toString(), "Get Oats", false, false),
             Task(UUID.randomUUID().toString(), "Get Berries", true, false),
-        )
+        ),
+        count = 3
     )
 }
 
@@ -307,9 +310,8 @@ fun getBackgroundColour(taskNumber: Int): Int {
     val colorsHex = BuildConfig.COLORS_HEX
     val colorsList = colorsHex.split(",").map { it.trim() }
 
-    val colorIndex = taskNumber % 20
-    val actualIndex = colorIndex % colorsList.size
-    val hexColor = colorsList[actualIndex]
+    val colorIndex = taskNumber % colorsList.size
+    val hexColor = colorsList[colorIndex]
 
     return hexColor.toColorInt()
 }

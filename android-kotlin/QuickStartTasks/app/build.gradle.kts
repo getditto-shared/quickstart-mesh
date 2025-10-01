@@ -141,6 +141,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.androidx.compose.navigation)
+    implementation(libs.hilt.android)
 
     // Ditto SDK
     implementation(libs.live.ditto)

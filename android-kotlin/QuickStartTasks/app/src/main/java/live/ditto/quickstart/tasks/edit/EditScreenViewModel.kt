@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import live.ditto.DittoError
-import live.ditto.quickstart.tasks.DittoHandler.Companion.ditto
+import live.ditto.quickstart.tasks.DittoManager
+import live.ditto.quickstart.tasks.TasksApplication
 import live.ditto.quickstart.tasks.data.Task
 
 class EditScreenViewModel : ViewModel() {
@@ -15,6 +15,7 @@ class EditScreenViewModel : ViewModel() {
         private const val TAG = "EditScreenViewModel"
     }
 
+    private val dittoManager: DittoManager = TasksApplication.getDittoManager()
     private var _id: String? = null
 
     var title = MutableLiveData<String>("")
@@ -26,17 +27,21 @@ class EditScreenViewModel : ViewModel() {
         val taskId: String = id ?: return
 
         viewModelScope.launch {
-            try {
-                val item = ditto.store.execute(
-                    "SELECT * FROM tasks WHERE _id = :_id AND NOT deleted",
-                    mapOf("_id" to taskId)
-                ).items.first()
+            if (!dittoManager.isDittoInitialized()) {
+                Log.w(TAG, "Cannot setup task - Ditto not initialized")
+                return@launch
+            }
 
+            dittoManager.executeQuery(
+                "SELECT * FROM tasks WHERE _id = :_id AND NOT deleted",
+                mapOf("_id" to taskId)
+            ).onSuccess { result ->
+                val item = result.items.first()
                 val task = Task.fromJson(item.jsonString())
                 _id = task._id
                 title.postValue(task.title)
                 done.postValue(task.done)
-            } catch (e: DittoError) {
+            }.onFailure { e ->
                 Log.e(TAG, "Unable to setup view task data", e)
             }
         }
@@ -44,43 +49,48 @@ class EditScreenViewModel : ViewModel() {
 
     fun save() {
         viewModelScope.launch {
-            try {
-                if (_id == null) {
-                    // Add tasks into the ditto collection using DQL INSERT statement
-                    // https://docs.ditto.live/sdk/latest/crud/write#inserting-documents
-                    ditto.store.execute(
-                        "INSERT INTO tasks DOCUMENTS (:doc)",
-                        mapOf(
-                            "doc" to mapOf(
-                                "title" to title.value,
-                                "done" to done.value,
-                                "deleted" to false
-                            )
+            if (!dittoManager.isDittoInitialized()) {
+                Log.w(TAG, "Cannot save task - Ditto not initialized")
+                return@launch
+            }
+
+            if (_id == null) {
+                // Add tasks into the ditto collection using DQL INSERT statement
+                // https://docs.ditto.live/sdk/latest/crud/write#inserting-documents
+                dittoManager.executeQuery(
+                    "INSERT INTO tasks DOCUMENTS (:doc)",
+                    mapOf(
+                        "doc" to mapOf(
+                            "title" to title.value,
+                            "done" to done.value,
+                            "deleted" to false
                         )
                     )
-                } else {
-                    // Update tasks into the ditto collection using DQL UPDATE statement
-                    // https://docs.ditto.live/sdk/latest/crud/update#updating
-                    _id?.let { id ->
-                        ditto.store.execute(
-                            """
-                            UPDATE tasks
-                            SET
-                              title = :title,
-                              done = :done
-                            WHERE _id = :id
-                            AND NOT deleted
-                            """,
-                            mapOf(
-                                "title" to title.value,
-                                "done" to done.value,
-                                "id" to id
-                            )
+                ).onFailure { e ->
+                    Log.e(TAG, "Unable to save task", e)
+                }
+            } else {
+                // Update tasks into the ditto collection using DQL UPDATE statement
+                // https://docs.ditto.live/sdk/latest/crud/update#updating
+                _id?.let { id ->
+                    dittoManager.executeQuery(
+                        """
+                        UPDATE tasks
+                        SET
+                          title = :title,
+                          done = :done
+                        WHERE _id = :id
+                        AND NOT deleted
+                        """,
+                        mapOf(
+                            "title" to title.value,
+                            "done" to done.value,
+                            "id" to id
                         )
+                    ).onFailure { e ->
+                        Log.e(TAG, "Unable to save task", e)
                     }
                 }
-            } catch (e: DittoError) {
-                Log.e(TAG, "Unable to save task", e)
             }
         }
     }
@@ -89,15 +99,18 @@ class EditScreenViewModel : ViewModel() {
         // UPDATE DQL Statement using Soft-Delete pattern
         // https://docs.ditto.live/sdk/latest/crud/delete#soft-delete-pattern
         viewModelScope.launch {
-            try {
-                _id?.let { id ->
-                    ditto.store.execute(
-                        "UPDATE tasks SET deleted = true WHERE _id = :id",
-                        mapOf("id" to id)
-                    )
+            if (!dittoManager.isDittoInitialized()) {
+                Log.w(TAG, "Cannot delete task - Ditto not initialized")
+                return@launch
+            }
+
+            _id?.let { id ->
+                dittoManager.executeQuery(
+                    "UPDATE tasks SET deleted = true WHERE _id = :id",
+                    mapOf("id" to id)
+                ).onFailure { e ->
+                    Log.e(TAG, "Unable to set deleted=true", e)
                 }
-            } catch (e: DittoError) {
-                Log.e(TAG, "Unable to set deleted=true", e)
             }
         }
     }

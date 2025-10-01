@@ -23,6 +23,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,34 +45,46 @@ fun BulkAddScreen(navController: NavController) {
     
     var prefix by remember { mutableStateOf("") }
     var taskNumberText by remember { mutableStateOf("") }
+    var delayText by remember { mutableStateOf("1000") } // Default 1000ms delay
     val focusRequester = remember { FocusRequester() }
     
     val taskNumber = taskNumberText.toIntOrNull() ?: 0
-    val isCreateEnabled = taskNumber > 0
+    val delay = delayText.toLongOrNull() ?: 1000L
+    val isCreating by bulkAddViewModel.isCreating.observeAsState(false)
+    val progress by bulkAddViewModel.progress.observeAsState("")
+    val isCreateEnabled = taskNumber > 0 && !isCreating
     
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Create Tasks", color = Color.White) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(
+                        onClick = { 
+                            if (!isCreating) {
+                                navController.popBackStack() 
+                            }
+                        },
+                        enabled = !isCreating
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Cancel",
-                            tint = Color.White
+                            tint = if (isCreating) Color.Gray else Color.White
                         )
                     }
                 },
                 actions = {
                     TextButton(
                         onClick = {
-                            bulkAddViewModel.createTasks(prefix, taskNumber)
-                            navController.popBackStack()
+                            if (!isCreating) {
+                                bulkAddViewModel.createTasks(prefix, taskNumber, delay)
+                            }
                         },
                         enabled = isCreateEnabled
                     ) {
                         Text(
-                            "Create",
+                            if (isCreating) "Creating..." else "Create",
                             color = if (isCreateEnabled) Color.White else Color.Gray
                         )
                     }
@@ -122,24 +135,71 @@ fun BulkAddScreen(navController: NavController) {
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true
                     )
+                    
+                    OutlinedTextField(
+                        value = delayText,
+                        onValueChange = { delayText = it.filter { char -> char.isDigit() } },
+                        label = { Text("Delay (milliseconds)") },
+                        placeholder = { Text("Time between creates (1000 = 1 second)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
                 }
             }
             
-            Text(
-                text = if (taskNumber > 0) {
-                    val taskPrefix = if (prefix.isNotEmpty()) "$prefix-" else "Task-"
-                    "Will create $taskNumber tasks:\n${taskPrefix}1, ${taskPrefix}2, ... ${taskPrefix}$taskNumber"
-                } else {
-                    "Enter the number of tasks to create"
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (isCreating) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Creating Tasks...",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = progress,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = if (taskNumber > 0) {
+                        val taskPrefix = if (prefix.isNotEmpty()) "$prefix-" else "Task-"
+                        val delaySeconds = delay / 1000.0
+                        val totalTime = (taskNumber - 1) * delaySeconds
+                        "Will create $taskNumber tasks:\n${taskPrefix}1, ${taskPrefix}2, ... ${taskPrefix}$taskNumber\n\nDelay: ${delaySeconds}s between each create\nTotal time: ~${totalTime}s"
+                    } else {
+                        "Enter the number of tasks to create"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
     
     // Request focus on the number field when the screen appears
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+    
+    // Navigate back when creation is complete
+    LaunchedEffect(isCreating) {
+        if (!isCreating && progress.startsWith("Completed!")) {
+            navController.popBackStack()
+        }
     }
 }

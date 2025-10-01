@@ -17,6 +17,8 @@ coroutines-tests = "1.10.2"
 ditto = "4.12.1"
 dittotools = "4.0.2"
 monitor = "1.7.2"
+dagger = "2.57"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +49,8 @@ live-ditto = { group = "live.ditto", name = "ditto", version.ref = "ditto" }
 ditto-tools = { group = "live.ditto", name = "ditto-tools-android", version.ref = "dittotools" }
 kotlinx-coroutines = {group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines-tests" }
 androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

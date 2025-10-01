@@ -62,7 +62,7 @@ import org.koin.core.logger.Logger
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TasksListScreen(navController: NavController) {
+fun TasksListScreen(navController: NavController, isDittoInitialized: Boolean = true) {
     val tasksListViewModel: TasksListScreenViewModel = viewModel()
     val tasks: List<Task> by tasksListViewModel.tasks.observeAsState(emptyList())
     val syncEnabled: Boolean by tasksListViewModel.syncEnabled.observeAsState(true)
@@ -88,12 +88,12 @@ fun TasksListScreen(navController: NavController) {
                         Text(
                             text = "$count",
                             style = TextStyle(
-                                fontSize = 80.sp, // Reduced from 100.sp
+                                fontSize = if (count.toString().length > 4) 48.sp else if (count.toString().length > 3) 60.sp else 72.sp,
                                 fontWeight = FontWeight.Bold,
-                                lineHeight = 80.sp
+                                lineHeight = if (count.toString().length > 4) 48.sp else if (count.toString().length > 3) 60.sp else 72.sp
                             ),
                             maxLines = 1,
-                            overflow = TextOverflow.Visible, // Shows "..." if still too long
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.CenterStart)

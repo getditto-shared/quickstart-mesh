@@ -13,14 +13,14 @@ import live.ditto.quickstart.tasks.tools.DittoToolsScreen
 import live.ditto.quickstart.tasks.ui.theme.QuickStartTasksTheme
 
 @Composable
-fun Root() {
+fun Root(isDittoInitialized: Boolean = true) {
     val navController = rememberNavController()
 
     QuickStartTasksTheme {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colorScheme.background) {
             NavHost(navController = navController, startDestination = "tasks") {
-                composable("tasks") { TasksListScreen(navController = navController) }
+                composable("tasks") { TasksListScreen(navController = navController, isDittoInitialized = isDittoInitialized) }
                 composable("tasks/edit") {
                     EditScreen(navController = navController, taskId = null)
                 }

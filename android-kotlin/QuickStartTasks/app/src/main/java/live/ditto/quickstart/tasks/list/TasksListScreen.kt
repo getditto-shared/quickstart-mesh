@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -70,6 +71,7 @@ fun TasksListScreen(navController: NavController, isDittoInitialized: Boolean = 
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteDialogTaskId by remember { mutableStateOf("") }
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier
@@ -107,6 +109,15 @@ fun TasksListScreen(navController: NavController, isDittoInitialized: Boolean = 
                 ),
                 actions = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = { showDeleteAllDialog = true }
+                        ) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "Delete All",
+                                tint = Color.White
+                            )
+                        }
                         IconButton(
                             onClick = { navController.navigate("tools") }
                         ) {
@@ -209,6 +220,44 @@ fun TasksListScreen(navController: NavController, isDittoInitialized: Boolean = 
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Alert displayed if user taps the Delete All button
+    if (showDeleteAllDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAllDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.Warning,
+                    contentDescription = "Warning",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = {
+                Text(
+                    text = "Delete All Incomplete Tasks",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Text(text = "This will permanently delete all incomplete tasks. Are you sure?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteAllDialog = false
+                        tasksListViewModel.deleteAllIncomplete()
+                    }
+                ) {
+                    Text("Delete All")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAllDialog = false }) {
                     Text("Cancel")
                 }
             }

@@ -180,4 +180,23 @@ class TasksListScreenViewModel : ViewModel() {
             }
         }
     }
+
+    fun deleteAllIncomplete() {
+        viewModelScope.launch {
+            if (!dittoManager.isDittoInitialized()) {
+                Log.w(TAG, "Cannot delete tasks - Ditto not initialized")
+                return@launch
+            }
+
+            // Use DQL DELETE to permanently delete all incomplete tasks
+            dittoManager.executeQuery(
+                "DELETE FROM tasks WHERE done = false",
+                emptyMap()
+            ).onSuccess { result ->
+                Log.d(TAG, "Successfully deleted all incomplete tasks")
+            }.onFailure { e ->
+                Log.e(TAG, "Unable to delete incomplete tasks", e)
+            }
+        }
+    }
 }

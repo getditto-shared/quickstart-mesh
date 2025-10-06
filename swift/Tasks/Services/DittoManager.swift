@@ -5,6 +5,10 @@ import Foundation
 class DittoManager: ObservableObject {
     let ditto: Ditto
     static let shared = DittoManager()
+    
+    var syncScopes = [
+      "local_mesh_only": "SmallPeersOnly"
+    ]
 
     func getDeviceName() -> String {
         return CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "Unset"
@@ -26,9 +30,10 @@ class DittoManager: ObservableObject {
         ditto.deviceName = getDeviceName()
         // Set the Ditto Websocket URL
         ditto.updateTransportConfig { transportConfig in
-            transportConfig.connect.webSocketURLs.insert(Env.DITTO_WEBSOCKET_URL)
-            transportConfig.peerToPeer.bluetoothLE.isEnabled = false
-            transportConfig.peerToPeer.awdl.isEnabled = false
+            //transportConfig.connect.webSocketURLs.insert(Env.DITTO_WEBSOCKET_URL)
+            transportConfig.peerToPeer.bluetoothLE.isEnabled = true
+            transportConfig.peerToPeer.awdl.isEnabled = true
+            transportConfig.peerToPeer.lan.isEnabled = true
         }
 
         // disable sync with v3 peers, required for DQL
@@ -36,13 +41,12 @@ class DittoManager: ObservableObject {
             try ditto.disableSyncWithV3()
             Task {
                 try await ditto.store.execute(query: "ALTER SYSTEM SET DQL_STRICT_MODE = false")
-                do {
-                    try await ditto.store.execute(query: "ALTER SYSTEM SET rotating_log_file_max_size_mb  =\(Env.DITTO_LOG_SIZE)")
-                } catch let error {
-                    print(
-                        "DittoManger - ERROR: setting Log file size failed with error \"\(error)\""
-                    )
-                }
+                try await ditto.store.execute(query: "ALTER SYSTEM SET rotating_log_file_max_size_mb  =\(Env.DITTO_LOG_SIZE)")
+                
+                try await ditto.store.execute(
+                    query: "ALTER SYSTEM SET USER_COLLECTION_SYNC_SCOPES = :syncScopes",
+                    arguments: ["syncScopes": syncScopes]
+                )
             }
         } catch let error {
             print(

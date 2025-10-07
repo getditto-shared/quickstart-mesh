@@ -48,14 +48,14 @@ androidComponents {
             val value = prop[key]?.toString() ?: if (key == "DITTO_LOG_SIZE") "50" else ""
 
             if (key == "COLORS_HEX" || key == "DITTO_LOG_SIZE") {
-                it.buildConfigFields.put(
+                it.buildConfigFields?.put(
                     key,
                     BuildConfigField("String", "\"${value}\"", description)
                 )
             } else {
-                it.buildConfigFields.put(
+                it.buildConfigFields?.put(
                     key,
-                    BuildConfigField("String", "${value}", description)
+                    BuildConfigField("String", value, description)
                 )
             }
         }
@@ -64,7 +64,7 @@ androidComponents {
 
 android {
     namespace = "live.ditto.quickstart.tasks"
-    compileSdk = 35
+    compileSdk = 36
     
     lint {
         baseline = file("lint-baseline.xml")
@@ -97,11 +97,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    
-    kotlinOptions {
-        jvmTarget = "1.8"
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        }
     }
-    
+
     buildFeatures {
         buildConfig = true
         compose = true
@@ -134,6 +136,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.runtime.livedata)
+    implementation("androidx.compose.material:material-icons-extended")
 
     // Dependency Injection
     implementation(platform(libs.koin.bom))
@@ -146,13 +149,14 @@ dependencies {
     // Ditto SDK
     implementation(libs.live.ditto)
     implementation(libs.ditto.tools)
+    implementation(libs.androidx.compose.ui.test)
 
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines)
-    
+
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    // androidTestImplementation(libs.androidx.espresso.core)  // Temporarily commented out due to resolution issues
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 

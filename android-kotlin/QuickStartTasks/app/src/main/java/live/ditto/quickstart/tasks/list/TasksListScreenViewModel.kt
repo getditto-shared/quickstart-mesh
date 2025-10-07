@@ -1,35 +1,26 @@
 package live.ditto.quickstart.tasks.list
 
-import android.content.Context
 import android.util.Log
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import live.ditto.DittoError
 import live.ditto.quickstart.tasks.DittoManager
 import live.ditto.quickstart.tasks.TasksApplication
 import live.ditto.quickstart.tasks.data.Task
 
-// The value of the Sync switch is stored in persistent settings
-private val Context.preferencesDataStore by preferencesDataStore("tasks_list_settings")
-private val SYNC_ENABLED_KEY = booleanPreferencesKey("sync_enabled")
+// Removed DataStore persistence - transport states now default to true on app start
 
 class TasksListScreenViewModel : ViewModel() {
 
     companion object {
         private const val TAG = "TasksListScreenViewModel"
         private const val QUERY = "SELECT * FROM tasks WHERE NOT deleted ORDER BY title ASC LIMIT 50"
-        private const val countQUERY = "SELECT COUNT(*) as result FROM tasks WHERE NOT deleted"
+        private const val COUNT_QUERY = "SELECT COUNT(*) as result FROM tasks WHERE NOT deleted"
     }
 
-    private val preferencesDataStore = TasksApplication.applicationContext().preferencesDataStore
     private val dittoManager: DittoManager = TasksApplication.getDittoManager()
 
     val tasks: MutableLiveData<List<Task>> = MutableLiveData(emptyList())
@@ -37,13 +28,19 @@ class TasksListScreenViewModel : ViewModel() {
     private val _syncEnabled = MutableLiveData(true)
     val syncEnabled: LiveData<Boolean> = _syncEnabled
 
+    private val _bluetoothEnabled = MutableLiveData(true)
+    val bluetoothEnabled: LiveData<Boolean> = _bluetoothEnabled
+
+    private val _lanEnabled = MutableLiveData(true)
+    val lanEnabled: LiveData<Boolean> = _lanEnabled
+
+    private val _wifiAwareEnabled = MutableLiveData(true)
+    val wifiAwareEnabled: LiveData<Boolean> = _wifiAwareEnabled
+
     val count: MutableLiveData<Int> = MutableLiveData(0)
 
     fun setSyncEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            preferencesDataStore.edit { settings ->
-                settings[SYNC_ENABLED_KEY] = enabled
-            }
             _syncEnabled.value = enabled
 
             if (enabled && !dittoManager.isSyncActive()) {
@@ -62,19 +59,36 @@ class TasksListScreenViewModel : ViewModel() {
         }
     }
 
+    fun toggleBluetoothLE() {
+        val newValue = !(_bluetoothEnabled.value ?: true)
+        _bluetoothEnabled.value = newValue
+        dittoManager.toggleBluetoothLE()
+    }
+
+    fun toggleLAN() {
+        val newValue = !(_lanEnabled.value ?: true)
+        _lanEnabled.value = newValue
+        dittoManager.toggleLAN()
+    }
+
+    fun toggleWifiAware() {
+        val newValue = !(_wifiAwareEnabled.value ?: true)
+        _wifiAwareEnabled.value = newValue
+        dittoManager.toggleWifiAware()
+    }
+
     init {
         viewModelScope.launch {
             // Wait for Ditto to be initialized before setting up observers
             while (!dittoManager.isDittoInitialized()) {
                 kotlinx.coroutines.delay(100) // Wait 100ms before checking again
             }
-            
+
             populateTasksCollection()
             setupObservers()
 
-            setSyncEnabled(
-                preferencesDataStore.data.map { prefs -> prefs[SYNC_ENABLED_KEY] ?: true }.first()
-            )
+            // Start sync by default (all transports default to enabled)
+            setSyncEnabled(true)
         }
     }
 
@@ -89,7 +103,7 @@ class TasksListScreenViewModel : ViewModel() {
 
         viewModelScope.launch {
             // Observe count using Flow
-            dittoManager.liveQueryAsFlow(countQUERY, emptyMap()).collect { result ->
+            dittoManager.liveQueryAsFlow(COUNT_QUERY, emptyMap()).collect { result ->
                 result.items.forEach {
                     count.postValue(it.value["result"] as Int)
                 }
@@ -196,6 +210,24 @@ class TasksListScreenViewModel : ViewModel() {
                 Log.d(TAG, "Successfully deleted all incomplete tasks")
             }.onFailure { e ->
                 Log.e(TAG, "Unable to delete incomplete tasks", e)
+            }
+        }
+    }
+
+    fun evictAllDeleted() {
+        viewModelScope.launch {
+            if (!dittoManager.isDittoInitialized()) {
+                Log.w(TAG, "Cannot evict tasks - Ditto not initialized")
+                return@launch
+            }
+
+            dittoManager.executeQuery(
+                "EVICT FROM tasks WHERE deleted = true",
+                emptyMap()
+            ).onSuccess {
+                Log.d(TAG, "Successfully evicted all deleted tasks")
+            }.onFailure { e ->
+                Log.e(TAG, "Unable to evict deleted tasks", e)
             }
         }
     }

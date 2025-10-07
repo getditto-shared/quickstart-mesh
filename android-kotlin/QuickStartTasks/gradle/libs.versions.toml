@@ -1,30 +1,29 @@
 [versions]
-agp = "8.9.3"
-kotlin = "2.1.0"
-coreKtx = "1.16.0"
+agp = "8.13.0"
+kotlin = "2.2.20"
+coreKtx = "1.17.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.9.2"
-activityCompose = "1.10.1"
-composeBom = "2025.07.00"
-navigationCompose = "2.9.2"
-runtimeLivedata = "1.8.3"
+junitVersion = "1.3.0"
+lifecycleRuntimeKtx = "2.9.4"
+activityCompose = "1.11.0"
+composeBom = "2025.09.01"
+navigationCompose = "2.9.5"
+runtimeLivedata = "1.9.2"
 appcompat = "1.7.1"
 datastorePreferences = "1.1.7"
-koin-bom = "4.1.0"
+koin-bom = "4.1.1"
 coroutines-tests = "1.10.2"
-ditto = "4.12.2-experimental.bp-receive-timeout.5"
+ditto = "4.12.2"
 dittotools = "4.0.2"
-monitor = "1.7.2"
-dagger = "2.57"
+monitor = "1.8.0"
+dagger = "2.57.2"
+uiTest = "1.9.2"
 
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -50,6 +49,7 @@ ditto-tools = { group = "live.ditto", name = "ditto-tools-android", version.ref 
 kotlinx-coroutines = {group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines-tests" }
 androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "dagger" }
+androidx-compose-ui-test = { group = "androidx.compose.ui", name = "ui-test", version.ref = "uiTest" }
 
 
 [plugins]

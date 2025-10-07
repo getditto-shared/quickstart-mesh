@@ -20,7 +20,7 @@ fun Root(isDittoInitialized: Boolean = true) {
         // A surface container using the 'background' color from the theme
         Surface(color = MaterialTheme.colorScheme.background) {
             NavHost(navController = navController, startDestination = "tasks") {
-                composable("tasks") { TasksListScreen(navController = navController, isDittoInitialized = isDittoInitialized) }
+                composable("tasks") { TasksListScreen(navController = navController) }
                 composable("tasks/edit") {
                     EditScreen(navController = navController, taskId = null)
                 }

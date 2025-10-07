@@ -25,6 +25,10 @@ class DittoManager(
     private lateinit var ditto: Ditto
     private val currentSubscriptions: MutableMap<DittoCollectionSubscription, DittoSyncSubscription> = mutableMapOf()
 
+    val syncScopes = mapOf(
+        "local_mesh_only" to "SmallPeersOnly"
+    )
+
     suspend fun initDitto() {
         try {
             DittoLogger.minimumLogLevel = DittoLogLevel.DEBUG
@@ -46,9 +50,13 @@ class DittoManager(
                 disableSyncWithV3()
 
                 updateTransportConfig { transportConfig ->
-                    transportConfig.connect.websocketUrls.add(BuildConfig.DITTO_WEBSOCKET_URL)
+                    //transportConfig.connect.websocketUrls.add(BuildConfig.DITTO_WEBSOCKET_URL)
                 }
 
+                store.execute(
+                    "ALTER SYSTEM SET USER_COLLECTION_SYNC_SCOPES = :syncScopes",
+                    mapOf("syncScopes" to syncScopes)
+                )
                 store.execute("ALTER SYSTEM SET rotating_log_file_max_size_mb = ${BuildConfig.DITTO_LOG_SIZE}")
                 store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false")
                 startSync()
@@ -104,16 +112,6 @@ class DittoManager(
         currentSubscriptions[dittoCollectionSubscription] = dittoSyncSubscription
     }
 
-    fun unregisterSubscription(dittoCollectionSubscription: DittoCollectionSubscription) {
-        currentSubscriptions[dittoCollectionSubscription]?.close()
-        currentSubscriptions.remove(dittoCollectionSubscription)
-    }
-
-    fun unregisterAllSubscriptions() {
-        currentSubscriptions.values.forEach { it.close() }
-        currentSubscriptions.clear()
-    }
-
     fun startSync() {
         if (::ditto.isInitialized && !ditto.isSyncActive) {
             try {
@@ -141,6 +139,30 @@ class DittoManager(
             ditto.isSyncActive
         } else {
             false
+        }
+    }
+
+    fun toggleBluetoothLE() {
+        if (::ditto.isInitialized) {
+            ditto.updateTransportConfig { config ->
+                config.peerToPeer.bluetoothLe.enabled = !config.peerToPeer.bluetoothLe.enabled
+            }
+        }
+    }
+
+    fun toggleLAN() {
+        if (::ditto.isInitialized) {
+            ditto.updateTransportConfig { config ->
+                config.peerToPeer.lan.enabled = !config.peerToPeer.lan.enabled
+            }
+        }
+    }
+
+    fun toggleWifiAware() {
+        if (::ditto.isInitialized) {
+            ditto.updateTransportConfig { config ->
+                config.peerToPeer.wifiAware.enabled = !config.peerToPeer.wifiAware.enabled
+            }
         }
     }
 }

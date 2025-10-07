@@ -3,6 +3,7 @@ package live.ditto.quickstart.tasks.edit
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Devices
@@ -16,40 +17,50 @@ fun EditForm(
     onTitleTextChange: ((title: String) -> Unit)? = null,
     done: Boolean = false,
     onDoneChanged: ((done: Boolean) -> Unit)? = null,
-    onSaveButtonClicked: (() -> Unit)? = null,
     onDeleteButtonClicked: (() -> Unit)? = null,
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Title:")
-        TextField(
-            value = title,
-            onValueChange = { onTitleTextChange?.invoke(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp)
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            Arrangement.SpaceBetween
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Text(text = "Is Complete:")
-            Switch(checked = done, onCheckedChange = { onDoneChanged?.invoke(it) })
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { onTitleTextChange?.invoke(it) },
+                    label = { Text("Title") },
+                    placeholder = { Text("Enter task title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = false
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Is Complete",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Switch(
+                        checked = done,
+                        onCheckedChange = { onDoneChanged?.invoke(it) }
+                    )
+                }
+            }
         }
-        Button(
-            onClick = {
-                onSaveButtonClicked?.invoke()
-            },
-            modifier = Modifier
-                .padding(bottom = 12.dp)
-                .fillMaxWidth(),
-        ) {
-            Text(
-                text = "Save",
-                modifier = Modifier.padding(8.dp)
-            )
-        }
+
         if (canDelete) {
             Button(
                 onClick = {
@@ -57,9 +68,9 @@ fun EditForm(
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Red,
-                    contentColor = Color.White),
-                modifier = Modifier
-                    .fillMaxWidth(),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     text = "Delete",

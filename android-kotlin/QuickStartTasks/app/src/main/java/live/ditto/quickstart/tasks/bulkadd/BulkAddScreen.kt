@@ -116,15 +116,6 @@ fun BulkAddScreen(navController: NavController) {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedTextField(
-                        value = prefix,
-                        onValueChange = { prefix = it },
-                        label = { Text("Prefix") },
-                        placeholder = { Text("Optional prefix for tasks") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    
-                    OutlinedTextField(
                         value = taskNumberText,
                         onValueChange = { taskNumberText = it.filter { char -> char.isDigit() } },
                         label = { Text("Number of Tasks") },
@@ -143,6 +134,15 @@ fun BulkAddScreen(navController: NavController) {
                         placeholder = { Text("Time between creates (1000 = 1 second)") },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = prefix,
+                        onValueChange = { prefix = it },
+                        label = { Text("Prefix") },
+                        placeholder = { Text("Optional prefix for tasks") },
+                        modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
                 }
